@@ -141,6 +141,7 @@ class HttpServer extends Server
     {
         $_SERVER['PHP_SELF'] = '/index.php';
         $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['SERVER_SOFTWARE'] = 'ThinkAdminServer';
         $_SERVER['SCRIPT_FILENAME'] = $this->app->getRootPath() . 'public' . DIRECTORY_SEPARATOR . 'index.php';
         $file = $this->root . (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/');
         if (!is_file($file)) {
