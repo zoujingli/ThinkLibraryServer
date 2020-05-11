@@ -1,0 +1,35 @@
+{
+  "type": "library",
+  "name": "zoujingli/think-library-server",
+  "license": "MIT",
+  "homepage": "http://framework.thinkadmin.top",
+  "description": "ThinkAdmin v6 Workerman HttpServer",
+  "authors": [
+    {
+      "name": "Anyon",
+      "email": "zoujingli@qq.com"
+    }
+  ],
+  "require": {
+    "ext-gd": "*",
+    "ext-curl": "*",
+    "ext-json": "*",
+    "ext-iconv": "*",
+    "ext-fileinfo": "*",
+    "topthink/framework": "^6.0",
+    "workerman/workerman": "^3.5",
+    "topthink/think-template": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "think\\admin\\server\\": "src"
+    }
+  },
+  "extra": {
+    "think": {
+      "services": [
+        "think\\admin\\server\\Service"
+      ]
+    }
+  }
+}
