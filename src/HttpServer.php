@@ -26,11 +26,7 @@ use Workerman\Worker;
  */
 class HttpServer extends Server
 {
-    /**
-     * @var HttpApp
-     */
     protected $app;
-
     protected $root;
     protected $rootPath;
     protected $appInit;
@@ -78,8 +74,8 @@ class HttpServer extends Server
 
     public function setMonitor($interval = 2, $path = [])
     {
-        $this->monitor['interval'] = $interval;
         $this->monitor['path'] = (array)$path;
+        $this->monitor['interval'] = $interval;
     }
 
     /**
@@ -104,9 +100,7 @@ class HttpServer extends Server
     {
         $this->initMimeTypeMap();
         $this->app = new HttpApp($this->rootPath);
-        if ($this->appInit) {
-            call_user_func_array($this->appInit, [$this->app]);
-        }
+        if ($this->appInit) call_user_func_array($this->appInit, [$this->app]);
         $this->app->initialize();
         $this->lastMtime = time();
         $this->app->worker = $worker;
@@ -115,6 +109,7 @@ class HttpServer extends Server
             'think\Request'           => Request::class,
             'think\view\driver\Think' => Think::class,
         ]);
+        class_alias(Think::class, 'think\view\driver\Think');
         if (0 == $worker->id && $this->monitor) {
             $paths = $this->monitor['path'];
             $timer = $this->monitor['interval'] ?: 2;
@@ -123,14 +118,13 @@ class HttpServer extends Server
                     $dir = new RecursiveDirectoryIterator($path);
                     $iterator = new RecursiveIteratorIterator($dir);
                     foreach ($iterator as $file) {
-                        if (pathinfo($file, PATHINFO_EXTENSION) != 'php') {
-                            continue;
-                        }
-                        if ($this->lastMtime < $file->getMTime()) {
-                            echo '[update]' . $file . "\n";
-                            posix_kill(posix_getppid(), SIGUSR1);
-                            $this->lastMtime = $file->getMTime();
-                            return;
+                        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                            if ($this->lastMtime < $file->getMTime()) {
+                                echo '[update]' . $file . "\n";
+                                posix_kill(posix_getppid(), SIGUSR1);
+                                $this->lastMtime = $file->getMTime();
+                                return;
+                            }
                         }
                     }
                 }
@@ -203,15 +197,12 @@ class HttpServer extends Server
      */
     protected function getMimeType(string $filename)
     {
-        $fileInfo = pathinfo($filename);
-        $extension = $fileInfo['extension'] ?? '';
+        $extension = pathinfo($filename, PATHINFO_EXTENSION) ?? '';
         if (isset(self::$mimeTypeMap[$extension])) {
-            $mime = self::$mimeTypeMap[$extension];
+            return self::$mimeTypeMap[$extension];
         } else {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime = finfo_file($finfo, $filename);
+            return finfo_file(finfo_open(FILEINFO_MIME_TYPE), $filename);
         }
-        return $mime;
     }
 
     /**
@@ -219,22 +210,22 @@ class HttpServer extends Server
      */
     protected function initMimeTypeMap()
     {
-        $mime_file = WorkerHttp::getMimeTypesFile();
-        if (!is_file($mime_file)) {
-            Worker::log("$mime_file mime.type file not fond");
+        $mimeFile = WorkerHttp::getMimeTypesFile();
+        if (!is_file($mimeFile)) {
+            Worker::log("{$mimeFile} mime.type file not fond");
             return;
         }
-        $items = file($mime_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $items = file($mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!is_array($items)) {
-            Worker::log("get $mime_file mime.type content fail");
+            Worker::log("get {$mimeFile} mime.type content fail");
             return;
         }
         foreach ($items as $content) if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
-            $mime_type = $match[1];
-            $workerman_file_extension_var = $match[2];
-            $workerman_file_extension_array = explode(' ', substr($workerman_file_extension_var, 0, -1));
-            foreach ($workerman_file_extension_array as $workerman_file_extension) {
-                self::$mimeTypeMap[$workerman_file_extension] = $mime_type;
+            $mimetype = $match[1];
+            $workermanFileExtensionVar = $match[2];
+            $workermanFileExtensionArr = explode(' ', substr($workermanFileExtensionVar, 0, -1));
+            foreach ($workermanFileExtensionArr as $workermanFileExtension) {
+                self::$mimeTypeMap[$workermanFileExtension] = $mimetype;
             }
         }
     }

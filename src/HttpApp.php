@@ -36,10 +36,8 @@ class HttpApp extends App
     public function worker(TcpConnection $connection, $data = [])
     {
         try {
-            $this->beginTime = microtime(true);
-            $this->beginMem = memory_get_usage();
-            $this->db->clearQueryTimes();
             $pathinfo = ltrim(strpos($_SERVER['REQUEST_URI'], '?') ? strstr($_SERVER['REQUEST_URI'], '?', true) : $_SERVER['REQUEST_URI'], '/');
+            [$this->beginTime, $this->beginMem] = [microtime(true), memory_get_usage(), $this->db->clearQueryTimes()];
             $this->request->setPathinfo($pathinfo)->withInput($GLOBALS['HTTP_RAW_POST_DATA']);
             while (ob_get_level() > 1) ob_end_clean();
             ob_start();
@@ -72,6 +70,10 @@ class HttpApp extends App
         return false;
     }
 
+    /**
+     * 输出HTTP状态码
+     * @param integer $code
+     */
     protected function httpResponseCode($code = 200)
     {
         Http::responseCode($code);
