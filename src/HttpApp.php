@@ -58,8 +58,8 @@ class HttpApp extends App
             } else {
                 $connection->close($content);
             }
-        } catch (HttpException | \Exception | \Throwable $e) {
-            $this->exception($connection, $e);
+        } catch (HttpException | \Exception | \Throwable $exception) {
+            $this->exception($connection, $exception);
         }
     }
 
