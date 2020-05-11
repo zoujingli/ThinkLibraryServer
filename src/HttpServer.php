@@ -115,9 +115,6 @@ class HttpServer extends Server
             'think\Request'           => Request::class,
             'think\view\driver\Think' => Think::class,
         ]);
-        if (!class_exists('think\view\driver\Think')) {
-            class_alias(Think::class, 'think\view\driver\Think');
-        }
         if (0 == $worker->id && $this->monitor) {
             $paths = $this->monitor['path'];
             $timer = $this->monitor['interval'] ?: 2;

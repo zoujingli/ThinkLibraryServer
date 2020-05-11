@@ -8,7 +8,6 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types=1);
 
 namespace think\admin\server\bindmap;
 
@@ -19,9 +18,8 @@ use think\template\exception\TemplateNotFoundException;
 
 class Think
 {
-    // 模板引擎实例
-    private $template;
     private $app;
+    private $template;
 
     // 模板引擎参数
     protected $config = [
@@ -42,19 +40,15 @@ class Think
     public function __construct(App $app, array $config = [])
     {
         $this->app = $app;
-
         $this->config = array_merge($this->config, (array)$config);
-
         if (empty($this->config['cache_path'])) {
             $this->config['cache_path'] = $app->getRuntimePath() . 'temp' . DIRECTORY_SEPARATOR;
         }
-
         $this->template = new Template($this->config);
         $this->template->setCache($app->cache);
         $this->template->extend('$Think', function (array $vars) {
             $type = strtoupper(trim(array_shift($vars)));
             $param = implode('.', $vars);
-
             switch ($type) {
                 case 'CONST':
                     $parseStr = strtoupper($param);
@@ -166,30 +160,24 @@ class Think
     {
         // 分析模板文件规则
         $request = $this->app['request'];
-
         // 获取视图根目录
         if (strpos($template, '@')) {
             // 跨模块调用
             [$app, $template] = explode('@', $template);
         }
-
         if (isset($app)) {
             $view = $this->config['view_dir_name'];
             $viewPath = $this->app->getBasePath() . $app . DIRECTORY_SEPARATOR . $view . DIRECTORY_SEPARATOR;
-
             if (is_dir($viewPath)) {
                 $path = $viewPath;
             } else {
                 $path = $this->app->getRootPath() . $view . DIRECTORY_SEPARATOR . $app . DIRECTORY_SEPARATOR;
             }
-
             $this->template->view_path = $path;
         } else {
             $path = $this->config['view_path'];
         }
-
         $depr = $this->config['view_depr'];
-
         if (0 !== strpos($template, '/')) {
             $template = str_replace(['/', ':'], $depr, $template);
             $controller = $request->controller();
@@ -200,7 +188,6 @@ class Think
             } else {
                 $controller = Str::snake($controller);
             }
-
             if ($controller) {
                 if ('' == $template) {
                     // 如果模板文件名为空 按照默认模板渲染规则定位
@@ -211,7 +198,6 @@ class Think
                     } else {
                         $template = Str::snake($request->action());
                     }
-
                     $template = str_replace('.', DIRECTORY_SEPARATOR, $controller) . $depr . $template;
                 } elseif (false === strpos($template, $depr)) {
                     $template = str_replace('.', DIRECTORY_SEPARATOR, $controller) . $depr . $template;
@@ -220,7 +206,6 @@ class Think
         } else {
             $template = str_replace(['/', ':'], $depr, substr($template, 1));
         }
-
         return $path . ltrim($template, '/') . '.' . ltrim($this->config['view_suffix'], '.');
     }
 
