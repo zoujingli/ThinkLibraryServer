@@ -45,12 +45,9 @@ class HttpServer extends Server
     public function __construct($host, $port, $context = [])
     {
         $this->worker = new Worker('http://' . $host . ':' . $port, $context);
+        $this->worker->name = 'HttpServer';
         // 设置回调
-        foreach ($this->event as $event) {
-            if (method_exists($this, $event)) {
-                $this->worker->$event = [$this, $event];
-            }
-        }
+        foreach ($this->event as $event) if (method_exists($this, $event)) $this->worker->$event = [$this, $event];
     }
 
     public function setRootPath($path)
