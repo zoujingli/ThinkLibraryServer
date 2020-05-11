@@ -22,7 +22,9 @@ use Workerman\Protocols\Http as WorkerHttp;
 use Workerman\Worker;
 
 /**
- * Worker http server 命令行服务类
+ * HttpServer 命令行服务类
+ * Class HttpServer
+ * @package think\admin\server
  */
 class HttpServer extends Server
 {
@@ -35,16 +37,14 @@ class HttpServer extends Server
     protected static $mimeTypeMap = [];
 
     /**
-     * 架构函数
-     * @access public
+     * HttpServer constructor.
      * @param string $host 监听地址
-     * @param int $port 监听端口
+     * @param integer $port 监听端口
      * @param array $context 参数
      */
     public function __construct($host, $port, $context = [])
     {
         $this->worker = new Worker('http://' . $host . ':' . $port, $context);
-        $this->worker->name = 'HttpServer';
         // 设置回调
         foreach ($this->event as $event) {
             if (method_exists($this, $event)) {
@@ -85,11 +85,8 @@ class HttpServer extends Server
      */
     public function option(array $option)
     {
-        // 设置参数
-        if (!empty($option)) {
-            foreach ($option as $key => $val) {
-                $this->worker->$key = $val;
-            }
+        if (!empty($option)) foreach ($option as $key => $val) {
+            $this->worker->$key = $val;
         }
     }
 
@@ -106,27 +103,19 @@ class HttpServer extends Server
         $this->lastMtime = time();
         $this->app->worker = $worker;
         $this->app->bind([
-            'think\Cookie'            => Cookie::class,
-            'think\Request'           => Request::class,
-            'think\view\driver\Think' => Think::class,
+            'think\Cookie'  => Cookie::class,
+            'think\Request' => Request::class,
         ]);
         class_alias(Think::class, 'think\view\driver\Think');
         if (0 == $worker->id && $this->monitor) {
             $paths = $this->monitor['path'];
-            $timer = $this->monitor['interval'] ?: 2;
-            Timer::add($timer, function () use ($paths) {
-                foreach ($paths as $path) {
-                    $dir = new RecursiveDirectoryIterator($path);
-                    $iterator = new RecursiveIteratorIterator($dir);
-                    foreach ($iterator as $file) {
-                        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                            if ($this->lastMtime < $file->getMTime()) {
-                                echo '[update]' . $file . "\n";
-                                posix_kill(posix_getppid(), SIGUSR1);
-                                $this->lastMtime = $file->getMTime();
-                                return;
-                            }
-                        }
+            Timer::add($this->monitor['interval'] ?: 2, function () use ($paths) {
+                foreach ($paths as $path) foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path)) as $file) {
+                    if (pathinfo($file, PATHINFO_EXTENSION) === 'php') if ($this->lastMtime < $file->getMTime()) {
+                        echo '[update]' . $file . "\n";
+                        posix_kill(posix_getppid(), SIGUSR1);
+                        $this->lastMtime = $file->getMTime();
+                        return;
                     }
                 }
             });
@@ -142,7 +131,7 @@ class HttpServer extends Server
     {
         $_SERVER['PHP_SELF'] = '/index.php';
         $_SERVER['SCRIPT_NAME'] = '/index.php';
-        $_SERVER['SERVER_SOFTWARE'] = 'ThinkAdminServer';
+        $_SERVER['SERVER_SOFTWARE'] = 'HttpServer';
         $_SERVER['SCRIPT_FILENAME'] = $this->app->getRootPath() . 'public' . DIRECTORY_SEPARATOR . 'index.php';
         $file = $this->root . (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/');
         if (!is_file($file)) {
@@ -223,8 +212,7 @@ class HttpServer extends Server
             return;
         }
         foreach ($items as $content) if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
-            $mimetype = $match[1];
-            $workermanFileExtensionVar = $match[2];
+            [$mimetype, $workermanFileExtensionVar] = [$match[1], $match[2]];
             $workermanFileExtensionArr = explode(' ', substr($workermanFileExtensionVar, 0, -1));
             foreach ($workermanFileExtensionArr as $workermanFileExtension) {
                 self::$mimeTypeMap[$workermanFileExtension] = $mimetype;

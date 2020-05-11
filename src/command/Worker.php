@@ -20,6 +20,8 @@ use think\console\Output;
 
 /**
  * Worker 命令行类
+ * Class Worker
+ * @package think\admin\server\command
  */
 class Worker extends Command
 {

@@ -15,7 +15,9 @@ use think\Cookie as ThinkCookie;
 use Workerman\Protocols\Http as WorkerHttp;
 
 /**
- * Workerman Cookie类
+ * WorkermanCookie 类
+ * Class Cookie
+ * @package think\admin\server\bindmap
  */
 class Cookie extends ThinkCookie
 {

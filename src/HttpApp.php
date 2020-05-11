@@ -20,6 +20,8 @@ use Workerman\Worker;
 
 /**
  * Worker 应用对象
+ * Class HttpApp
+ * @package think\admin\server
  */
 class HttpApp extends App
 {

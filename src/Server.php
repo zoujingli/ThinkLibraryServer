@@ -19,6 +19,8 @@ use Workerman\Worker;
 
 /**
  * Worker 控制器扩展类
+ * Class Server
+ * @package think\admin\server
  */
 abstract class Server
 {
@@ -32,25 +34,16 @@ abstract class Server
     protected $event = ['onWorkerStart', 'onConnect', 'onMessage', 'onClose', 'onError', 'onBufferFull', 'onBufferDrain', 'onWorkerReload', 'onWebSocketConnect'];
 
     /**
-     * 架构函数
-     * @access public
+     * Server constructor.
      */
     public function __construct()
     {
         // 实例化 Websocket 服务
         $this->worker = new Worker($this->socket ?: $this->protocol . '://' . $this->host . ':' . $this->port, $this->context);
         // 设置参数
-        if (!empty($this->option)) {
-            foreach ($this->option as $key => $val) {
-                $this->worker->$key = $val;
-            }
-        }
+        if (!empty($this->option)) foreach ($this->option as $key => $value) $this->worker->$key = $value;
         // 设置回调
-        foreach ($this->event as $event) {
-            if (method_exists($this, $event)) {
-                $this->worker->$event = [$this, $event];
-            }
-        }
+        foreach ($this->event as $event) if (method_exists($this, $event)) $this->worker->$event = [$this, $event];
         // 初始化
         $this->init();
     }

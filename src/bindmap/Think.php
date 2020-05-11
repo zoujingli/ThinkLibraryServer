@@ -16,6 +16,11 @@ use think\helper\Str;
 use think\Template;
 use think\template\exception\TemplateNotFoundException;
 
+/**
+ * ThinkPHP 内置支持视图
+ * Class Think
+ * @package think\admin\server\bindmap
+ */
 class Think
 {
     private $app;
