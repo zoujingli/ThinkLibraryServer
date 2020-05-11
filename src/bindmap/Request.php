@@ -62,7 +62,6 @@ class Request extends ThinkRequest
                 'size' => $item['file_size'], 'error' => UPLOAD_ERR_OK, 'tmp_name' => $tmpfile,
             ];
         }
-        p($request->file);
         return $request;
     }
 }
