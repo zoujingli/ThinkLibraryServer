@@ -131,7 +131,7 @@ class Worker extends Command
      * @param string $default
      * @return string
      */
-    protected function getPort(string $default = '2346')
+    protected function getPort(string $default = '80')
     {
         if ($this->input->hasOption('port')) {
             return $this->input->getOption('port');
