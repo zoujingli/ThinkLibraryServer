@@ -27,7 +27,7 @@ class Service extends ThinkService
     public function register()
     {
         $this->commands([
-            '\\think\\admin\\server\\command\\Worker',
+            'xadmin:server' => '\\think\\admin\\server\\command\\Worker',
         ]);
     }
 }
