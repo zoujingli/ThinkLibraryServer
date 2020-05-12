@@ -92,6 +92,7 @@ class Worker extends Command
             $this->config['root'] = $this->app->getRootPath() . 'public';
         }
         $worker->setRoot($this->config['root']);
+        $worker->setStaticOption('logFile', $this->app->getRuntimePath() . 'server.log');
         unset($this->config['root']);
         // 设置文件监控
         if (DIRECTORY_SEPARATOR !== '\\' && ($this->app->isDebug() || !empty($this->config['file_monitor']))) {
