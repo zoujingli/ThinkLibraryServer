@@ -15,7 +15,7 @@
 namespace think\admin\server\bindmap;
 
 use think\Cookie as ThinkCookie;
-use Workerman\Protocols\Http as WorkerHttp;
+use Workerman\Protocols\Http\Response;
 
 /**
  * WorkermanCookie 类
@@ -24,6 +24,11 @@ use Workerman\Protocols\Http as WorkerHttp;
  */
 class Cookie extends ThinkCookie
 {
+    /**
+     * @var Response
+     */
+    private $response;
+
     /**
      * 保存Cookie
      * @param string $name cookie名称
@@ -34,11 +39,21 @@ class Cookie extends ThinkCookie
      * @param boolean $secure 是否仅仅通过HTTPS
      * @param boolean $httponly 仅可通过HTTP访问
      * @param string $samesite 防止CSRF攻击和用户追踪
-     * @return void
      */
     protected function saveCookie(string $name, string $value, int $expire, string $path, string $domain, bool $secure, bool $httponly, string $samesite): void
     {
-        WorkerHttp::setCookie($name, $value, $expire, $path, $domain, $secure, $httponly);
+        $this->response->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);
+    }
+
+    /**
+     * 获取当前响应对象
+     * @param Response $response
+     * @return Cookie
+     */
+    public function setResponse(Response $response)
+    {
+        $this->response = $response;
+        return $this;
     }
 
 }

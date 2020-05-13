@@ -23,14 +23,48 @@ use Workerman\Worker;
  */
 abstract class Server
 {
+    /**
+     * @var Worker
+     */
     protected $worker;
+
+    /**
+     * @var string
+     */
     protected $socket = '';
+
+    /**
+     * @var string
+     */
     protected $protocol = 'http';
+
+    /**
+     * @var string
+     */
     protected $host = '0.0.0.0';
+
+    /**
+     * @var string
+     */
     protected $port = '2346';
+
+    /**
+     * @var array
+     */
     protected $option = [];
+
+    /**
+     * @var array
+     */
     protected $context = [];
-    protected $event = ['onWorkerStart', 'onConnect', 'onMessage', 'onClose', 'onError', 'onBufferFull', 'onBufferDrain', 'onWorkerReload', 'onWebSocketConnect'];
+
+    /**
+     * @var array
+     */
+    protected $event = [
+        'onWorkerStart', 'onConnect', 'onMessage', 'onClose', 'onError',
+        'onBufferFull', 'onBufferDrain', 'onWorkerReload', 'onWebSocketConnect',
+    ];
 
     /**
      * Server constructor.
