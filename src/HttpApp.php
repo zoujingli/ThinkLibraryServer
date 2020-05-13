@@ -44,7 +44,6 @@ class HttpApp extends App
     {
         try {
             $this->db->clearQueryTimes();
-            Cookie::$response = $wResponse;
             [$this->beginTime, $this->beginMem] = [microtime(true), memory_get_usage()];
             $pathinfo = ltrim(strpos($_SERVER['REQUEST_URI'], '?') ? strstr($_SERVER['REQUEST_URI'], '?', true) : $_SERVER['REQUEST_URI'], '/');
             $this->request->setPathinfo($pathinfo)->withInput($GLOBALS['HTTP_RAW_POST_DATA']);
