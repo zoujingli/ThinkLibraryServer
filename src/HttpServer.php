@@ -112,10 +112,7 @@ class HttpServer extends Server
         $this->app->initialize();
         [$this->lastMtime, $this->app->worker] = [time(), $worker];
         class_alias(Think::class, 'think\view\driver\Think');
-        $this->app->bind([
-            'think\Cookie'  => Cookie::class,
-            'think\Request' => Request::class,
-        ]);
+        $this->app->bind(['think\Cookie' => Cookie::class, 'think\Request' => Request::class]);
     }
 
     /**
