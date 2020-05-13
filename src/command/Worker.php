@@ -82,7 +82,7 @@ class Worker extends Command
         if ($this->input->hasOption('daemon')) {
             $worker->setStaticOption('daemonize', true);
         }
-        // 开启 HTTPS 访问
+        // 开启HTTPS访问
         if (!empty($this->config['ssl'])) {
             $this->config['transport'] = 'ssl';
             unset($this->config['ssl']);
@@ -93,8 +93,14 @@ class Worker extends Command
         }
         $worker->setRoot($this->config['root']);
         $worker->setStaticOption('logFile', $this->app->getRuntimePath() . 'server.log');
-        $worker->setStaticOption('stdoutFile', $this->app->getRuntimePath() . 'server.std');
         unset($this->config['root']);
+        // 设置文件监控
+        if (DIRECTORY_SEPARATOR !== '\\' && ($this->app->isDebug() || !empty($this->config['file_monitor']))) {
+            $interval = $this->config['file_monitor_interval'] ?? 2;
+            $paths = !empty($this->config['file_monitor_path']) ? $this->config['file_monitor_path'] : [$this->app->getAppPath(), $this->app->getConfigPath()];
+            $worker->setMonitor($interval, $paths);
+            unset($this->config['file_monitor'], $this->config['file_monitor_interval'], $this->config['file_monitor_path']);
+        }
         // 全局静态属性设置
         foreach ($this->config as $name => $val) {
             if (in_array($name, ['stdoutFile', 'daemonize', 'pidFile', 'logFile'])) {

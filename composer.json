@@ -18,7 +18,7 @@
     "ext-fileinfo": "*",
     "topthink/framework": "^6.0",
     "topthink/think-view": "^1.0",
-    "workerman/workerman": "^4.0"
+    "workerman/workerman": "^3.5"
   },
   "autoload": {
     "psr-4": {

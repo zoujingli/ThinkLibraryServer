@@ -15,12 +15,14 @@
 
 namespace think\admin\server;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use think\admin\server\bindmap\Cookie;
 use think\admin\server\bindmap\Request;
 use think\admin\server\bindmap\Think;
 use Workerman\Connection\TcpConnection;
-use Workerman\Protocols\Http\Request as WorkerRequest;
-use Workerman\Protocols\Http\Response as WorkerResponse;
+use Workerman\Lib\Timer;
+use Workerman\Protocols\Http as WorkerHttp;
 use Workerman\Worker;
 
 /**
@@ -30,44 +32,26 @@ use Workerman\Worker;
  */
 class HttpServer extends Server
 {
-    /**
-     * @var HttpApp
-     */
     protected $app;
-
-    /**
-     * @var string
-     */
     protected $root;
-
-    /**
-     * @var string
-     */
     protected $rootPath;
-
-    /**
-     * @var string
-     */
     protected $appInit;
-
-    /**
-     * @var string
-     */
+    protected $monitor;
     protected $lastMtime;
+    protected static $mimeTypeMap = [];
 
     /**
      * HttpServer constructor.
      * @param string $host 监听地址
      * @param integer $port 监听端口
-     * @param array $context 监听参数
+     * @param array $context 参数
      */
     public function __construct($host, $port, $context = [])
     {
-        $this->host = $host;
-        $this->port = $port;
-        $this->protocol = 'http';
-        $this->context = $context;
-        parent::__construct();
+        $this->worker = new Worker('http://' . $host . ':' . $port, $context);
+        $this->worker->name = 'HttpServer';
+        // 设置回调
+        foreach ($this->event as $event) if (method_exists($this, $event)) $this->worker->$event = [$this, $event];
     }
 
     public function setRootPath($path)
@@ -90,14 +74,20 @@ class HttpServer extends Server
         Worker::${$name} = $value;
     }
 
+    public function setMonitor($interval = 2, $path = [])
+    {
+        $this->monitor['path'] = (array)$path;
+        $this->monitor['interval'] = $interval;
+    }
+
     /**
      * 设置参数
      * @param array $option 参数
      */
     public function option(array $option)
     {
-        if (!empty($option)) foreach ($option as $name => $value) {
-            $this->worker->$name = $value;
+        if (!empty($option)) foreach ($option as $key => $val) {
+            $this->worker->$key = $val;
         }
     }
 
@@ -107,40 +97,128 @@ class HttpServer extends Server
      */
     public function onWorkerStart(Worker $worker)
     {
+        $this->initMimeTypeMap();
         $this->app = new HttpApp($this->rootPath);
         if ($this->appInit) call_user_func_array($this->appInit, [$this->app]);
         $this->app->initialize();
-        [$this->lastMtime, $this->app->worker] = [time(), $worker];
+        $this->lastMtime = time();
+        $this->app->worker = $worker;
+        $this->app->bind([
+            'think\Cookie'  => Cookie::class,
+            'think\Request' => Request::class,
+        ]);
         class_alias(Think::class, 'think\view\driver\Think');
-        $this->app->bind(['think\Cookie' => Cookie::class, 'think\Request' => Request::class]);
+        if (0 == $worker->id && $this->monitor) {
+            $paths = $this->monitor['path'];
+            Timer::add($this->monitor['interval'] ?: 2, function () use ($paths) {
+                foreach ($paths as $path) foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path)) as $file) {
+                    if (pathinfo($file, PATHINFO_EXTENSION) === 'php') if ($this->lastMtime < $file->getMTime()) {
+                        echo '[update]' . $file . "\n";
+                        posix_kill(posix_getppid(), SIGUSR1);
+                        $this->lastMtime = $file->getMTime();
+                        return;
+                    }
+                }
+            });
+        }
     }
 
     /**
      * onMessage 事件回调
      * @param TcpConnection $connection
-     * @param WorkerRequest $request
+     * @param mixed $data
      */
-    public function onMessage(TcpConnection $connection, WorkerRequest $request)
+    public function onMessage(TcpConnection $connection, $data)
     {
         $_SERVER['PHP_SELF'] = '/index.php';
         $_SERVER['SCRIPT_NAME'] = '/index.php';
         $_SERVER['SERVER_SOFTWARE'] = 'HttpServer';
         $_SERVER['SCRIPT_FILENAME'] = $this->app->getRootPath() . 'public' . DIRECTORY_SEPARATOR . 'index.php';
-        $response = new WorkerResponse();
-        $this->app->cookie = $this->app->make(Cookie::class, [], true)->setResponse($response);
-        if (is_file($file = $this->root . (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/'))) {
-            if (!empty($ifModifiedSince = $request->header('if-modified-since'))) {
-                $modifiedTime = date('D, d M Y H:i:s', filemtime($file)) . ' ' . date_default_timezone_get();
-                if ($modifiedTime === $ifModifiedSince) {
-                    $connection->send($response->withStatus(304));
-                    return;
-                }
-            }
-            $connection->send($response->withFile($file));
+        $file = $this->root . (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/');
+        if (!is_file($file)) {
+            $this->app->worker($connection, $data);
         } else {
-            $this->app->workerResponse($connection, $response);
+            $this->sendFile($connection, $file);
         }
-        unset($this->app->cookie);
+    }
+
+    /**
+     * 访问资源文件
+     * @param TcpConnection $connection
+     * @param string $file 文件名
+     * @return string
+     */
+    protected function sendFile(TcpConnection $connection, $file)
+    {
+        $info = stat($file);
+        $modifiyTime = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' ' . date_default_timezone_get() : '';
+        if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info) {
+            // Http 304.
+            if ($modifiyTime === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
+                // 304
+                WorkerHttp::header('HTTP/1.1 304 Not Modified');
+                // Send nothing but http headers..
+                return $connection->close('');
+            }
+        }
+        $mimeType = $this->getMimeType($file);
+        WorkerHttp::header('HTTP/1.1 200 OK');
+        WorkerHttp::header('Connection: keep-alive');
+        if ($mimeType) {
+            WorkerHttp::header('Content-Type: ' . $mimeType);
+        } else {
+            WorkerHttp::header('Content-Type: application/octet-stream');
+            $fileinfo = pathinfo($file);
+            $filename = $fileinfo['filename'] ?? '';
+            WorkerHttp::header('Content-Disposition: attachment; filename="' . $filename . '"');
+        }
+        if ($modifiyTime) {
+            WorkerHttp::header('Last-Modified: ' . $modifiyTime);
+        }
+        WorkerHttp::header('Content-Length: ' . filesize($file));
+        ob_start();
+        readfile($file);
+        $content = ob_get_clean();
+        return $connection->send($content);
+    }
+
+    /**
+     * 获取文件类型信息
+     * @param string $filename 文件名
+     * @return string
+     */
+    protected function getMimeType(string $filename)
+    {
+        $extension = pathinfo($filename, PATHINFO_EXTENSION) ?? '';
+        if (isset(self::$mimeTypeMap[$extension])) {
+            return self::$mimeTypeMap[$extension];
+        } else {
+            return finfo_file(finfo_open(FILEINFO_MIME_TYPE), $filename);
+        }
+    }
+
+    /**
+     * Init mime map.
+     */
+    protected function initMimeTypeMap()
+    {
+        $mimeFile = WorkerHttp::getMimeTypesFile();
+        if (!is_file($mimeFile)) {
+            Worker::log("{$mimeFile} mime.type file not fond");
+            return;
+        }
+        $items = file($mimeFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!is_array($items)) {
+            Worker::log("get {$mimeFile} mime.type content fail");
+            return;
+        }
+        foreach ($items as $content) if (preg_match("/\s*(\S+)\s+(\S.+)/", $content, $match)) {
+            [$mimetype, $workermanFileExtensionVar] = [$match[1], $match[2]];
+            $workermanFileExtensionArr = explode(' ', substr($workermanFileExtensionVar, 0, -1));
+            foreach ($workermanFileExtensionArr as $workermanFileExtension) {
+                self::$mimeTypeMap[$workermanFileExtension] = $mimetype;
+            }
+        }
     }
 
     /**
