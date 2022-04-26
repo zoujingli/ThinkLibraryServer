@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2020 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2022 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
 // +----------------------------------------------------------------------
 // | 官方网站: http://demo.thinkadmin.top
 // +----------------------------------------------------------------------
@@ -42,11 +42,11 @@ class HttpServer extends Server
 
     /**
      * HttpServer constructor.
-     * @param string $host 监听地址
-     * @param integer $port 监听端口
+     * @param mixed $host 监听地址
+     * @param mixed $port 监听端口
      * @param array $context 参数
      */
-    public function __construct($host, $port, $context = [])
+    public function __construct($host, $port, array $context = [])
     {
         $this->worker = new Worker('http://' . $host . ':' . $port, $context);
         $this->worker->name = 'HttpServer';

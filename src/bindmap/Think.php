@@ -1,8 +1,9 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2020 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2022 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
 // +----------------------------------------------------------------------
 // | 官方网站: http://demo.thinkadmin.top
 // +----------------------------------------------------------------------
@@ -26,7 +27,14 @@ use think\template\exception\TemplateNotFoundException;
  */
 class Think
 {
+    /**
+     * @var App
+     */
     private $app;
+
+    /**
+     * @var Template
+     */
     private $template;
 
     // 模板引擎参数
@@ -240,7 +248,13 @@ class Think
         return $this->template->getConfig($name);
     }
 
-    public function __call($method, $params)
+    /**
+     * 静态方法调用
+     * @param string $method
+     * @param array $params
+     * @return mixed
+     */
+    public function __call(string $method, array $params)
     {
         return call_user_func_array([$this->template, $method], $params);
     }

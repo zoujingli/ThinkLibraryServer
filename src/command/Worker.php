@@ -1,8 +1,9 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2020 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2022 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
 // +----------------------------------------------------------------------
 // | 官方网站: http://demo.thinkadmin.top
 // +----------------------------------------------------------------------
@@ -121,7 +122,7 @@ class Worker extends Command
      * @param string $default
      * @return string
      */
-    protected function getHost(string $default = '0.0.0.0')
+    protected function getHost(string $default = '0.0.0.0'): string
     {
         if ($this->input->hasOption('host')) {
             return $this->input->getOption('host');
@@ -135,7 +136,7 @@ class Worker extends Command
      * @param string $default
      * @return string
      */
-    protected function getPort(string $default = '80')
+    protected function getPort(string $default = '80'): string
     {
         if ($this->input->hasOption('port')) {
             return $this->input->getOption('port');
