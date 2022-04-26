@@ -61,7 +61,7 @@ class HttpApp extends App
             } else {
                 $connection->close($content);
             }
-        } catch (HttpException | \Exception | \Throwable $exception) {
+        } catch (HttpException|\Exception|\Throwable $exception) {
             $this->exception($connection, $exception);
         }
     }
@@ -70,7 +70,7 @@ class HttpApp extends App
      * 是否运行在命令行下
      * @return boolean
      */
-    public function runningInConsole()
+    public function runningInConsole(): bool
     {
         return false;
     }
@@ -79,7 +79,7 @@ class HttpApp extends App
      * 输出HTTP状态码
      * @param integer $code
      */
-    protected function httpResponseCode($code = 200)
+    protected function httpResponseCode(int $code = 200)
     {
         Http::responseCode($code);
     }
