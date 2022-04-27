@@ -13,7 +13,7 @@
 // | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
 // +----------------------------------------------------------------------
 
-namespace think\admin\server\bindmap;
+namespace think\admin\server\alias;
 
 use think\App;
 use think\helper\Str;
@@ -56,7 +56,7 @@ class Think
     public function __construct(App $app, array $config = [])
     {
         $this->app = $app;
-        $this->config = array_merge($this->config, (array)$config);
+        $this->config = array_merge($this->config, $config);
         if (empty($this->config['cache_path'])) {
             $this->config['cache_path'] = $app->getRuntimePath() . 'temp' . DIRECTORY_SEPARATOR;
         }
@@ -87,12 +87,10 @@ class Think
                 default:
                     $parseStr = defined($type) ? $type : '\'\'';
             }
-
             return $parseStr;
         });
-
         $this->template->extend('$Request', function (array $vars) {
-            // 获取Request请求对象参数
+            // 获取 Request 请求对象参数
             $method = array_shift($vars);
             if (!empty($vars)) {
                 $params = implode('.', $vars);
@@ -102,7 +100,6 @@ class Think
             } else {
                 $params = '';
             }
-
             return 'app(\'request\')->' . $method . '(' . $params . ')';
         });
     }
@@ -119,7 +116,6 @@ class Think
             // 获取模板文件名
             $template = $this->parseTemplate($template);
         }
-
         return is_file($template);
     }
 
@@ -132,7 +128,6 @@ class Think
      */
     public function fetch(string $template, array $data = []): void
     {
-        // if (empty($this->config['view_path'])) {
         $view = $this->config['view_dir_name'];
         if (is_dir($this->app->getAppPath() . $view)) {
             $path = $this->app->getAppPath() . $view . DIRECTORY_SEPARATOR;
@@ -142,7 +137,6 @@ class Think
         }
         $this->config['view_path'] = $path;
         $this->template->view_path = $path;
-        //  }
         if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
             // 获取模板文件名
             $template = $this->parseTemplate($template);

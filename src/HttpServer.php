@@ -17,9 +17,9 @@ namespace think\admin\server;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use think\admin\server\bindmap\Cookie;
-use think\admin\server\bindmap\Request;
-use think\admin\server\bindmap\Think;
+use think\admin\server\alias\Cookie;
+use think\admin\server\alias\Request;
+use think\admin\server\alias\Think;
 use Workerman\Connection\TcpConnection;
 use Workerman\Lib\Timer;
 use Workerman\Protocols\Http as WorkerHttp;
@@ -146,9 +146,9 @@ class HttpServer extends Server
      * 访问资源文件
      * @param TcpConnection $connection
      * @param string $file 文件名
-     * @return string
+     * @return bool|void|null
      */
-    protected function sendFile(TcpConnection $connection, $file)
+    protected function sendFile(TcpConnection $connection, string $file)
     {
         $info = stat($file);
         $modifiyTime = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' ' . date_default_timezone_get() : '';
@@ -157,7 +157,7 @@ class HttpServer extends Server
             if ($modifiyTime === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
                 // 304
                 WorkerHttp::header('HTTP/1.1 304 Not Modified');
-                // Send nothing but http headers..
+                // Send nothing but http headers
                 return $connection->close('');
             }
         }
@@ -187,14 +187,10 @@ class HttpServer extends Server
      * @param string $filename 文件名
      * @return string
      */
-    protected function getMimeType(string $filename)
+    protected function getMimeType(string $filename): string
     {
         $extension = pathinfo($filename, PATHINFO_EXTENSION) ?? '';
-        if (isset(self::$mimeTypeMap[$extension])) {
-            return self::$mimeTypeMap[$extension];
-        } else {
-            return finfo_file(finfo_open(FILEINFO_MIME_TYPE), $filename);
-        }
+        return self::$mimeTypeMap[$extension] ?? finfo_file(finfo_open(FILEINFO_MIME_TYPE), $filename);
     }
 
     /**

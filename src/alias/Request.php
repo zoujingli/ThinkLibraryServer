@@ -13,7 +13,7 @@
 // | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
 // +----------------------------------------------------------------------
 
-namespace think\admin\server\bindmap;
+namespace think\admin\server\alias;
 
 use think\App;
 use think\Request as ThinkRequest;
@@ -51,7 +51,7 @@ class Request extends ThinkRequest
         return $complete ? $this->domain() . $this->baseFile : $this->baseFile;
     }
 
-    public static function __make(App $app)
+    public static function __make(App $app): ThinkRequest
     {
         $request = parent::__make($app);
         [$request->file, $tmpfile] = [[], tempnam('', 'file_')];

@@ -35,8 +35,8 @@ class Worker extends Command
     {
         $this->setName('xadmin:server')
             ->addArgument('action', Argument::OPTIONAL, "start|stop|restart|reload|status|connections", 'start')
-            ->addOption('host', 'H', Option::VALUE_OPTIONAL, 'the host of workerman server.', null)
-            ->addOption('port', 'p', Option::VALUE_OPTIONAL, 'the port of workerman server.', null)
+            ->addOption('host', 'H', Option::VALUE_OPTIONAL, 'the host of workerman server.')
+            ->addOption('port', 'p', Option::VALUE_OPTIONAL, 'the port of workerman server.')
             ->addOption('daemon', 'd', Option::VALUE_NONE, 'Run the workerman server in daemon mode.')
             ->setDescription('Workerman HTTP Server for ThinkAdmin');
     }

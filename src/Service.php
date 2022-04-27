@@ -15,6 +15,7 @@
 
 namespace think\admin\server;
 
+use think\admin\server\command\Worker;
 use think\Service as ThinkService;
 
 /**
@@ -26,8 +27,6 @@ class Service extends ThinkService
 {
     public function register()
     {
-        $this->commands([
-            'xadmin:server' => '\\think\\admin\\server\\command\\Worker',
-        ]);
+        $this->commands(['xadmin:server' => Worker::class]);
     }
 }

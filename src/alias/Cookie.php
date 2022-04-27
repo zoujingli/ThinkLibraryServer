@@ -13,7 +13,7 @@
 // | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
 // +----------------------------------------------------------------------
 
-namespace think\admin\server\bindmap;
+namespace think\admin\server\alias;
 
 use think\Cookie as ThinkCookie;
 use Workerman\Protocols\Http as WorkerHttp;
@@ -26,10 +26,10 @@ use Workerman\Protocols\Http as WorkerHttp;
 class Cookie extends ThinkCookie
 {
     /**
-     * 保存Cookie
-     * @param string $name cookie名称
-     * @param string $value cookie值
-     * @param integer $expire cookie过期时间
+     * 保存 Cookie
+     * @param string $name cookie 名称
+     * @param string $value cookie 值
+     * @param integer $expire cookie 过期时间
      * @param string $path 有效的服务器路径
      * @param string $domain 有效域名/子域名
      * @param boolean $secure 是否仅仅通过HTTPS
@@ -41,5 +41,4 @@ class Cookie extends ThinkCookie
     {
         WorkerHttp::setCookie($name, $value, $expire, $path, $domain, $secure, $httponly);
     }
-
 }
