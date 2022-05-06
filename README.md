@@ -1,3 +1,6 @@
+[![Latest Stable Version](https://poser.pugx.org/zoujingli/think-library-server/v/stable)](https://packagist.org/packages/zoujingli/think-library-server) [![Total Downloads](https://poser.pugx.org/zoujingli/think-library-server/downloads)](https://packagist.org/packages/zoujingli/think-library-server) [![Latest Unstable Version](https://poser.pugx.org/zoujingli/think-library-server/v/unstable)](https://packagist.org/packages/zoujingli/think-library-server) [![License](https://poser.pugx.org/zoujingli/think-library-server/license)](https://packagist.org/packages/zoujingli/think-library-server)
+
+
 # ThinkLibraryServer
 
 #### 介绍
