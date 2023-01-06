@@ -1,25 +1,25 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Workerman HttpServer for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2022 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2022 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站:https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免费声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | github 代码仓库：https://github.com/zoujingli/ThinkLibraryServer
 // +----------------------------------------------------------------------
 
 namespace think\admin\server;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use think\admin\server\alias\Cookie;
-use think\admin\server\alias\Request;
-use think\admin\server\alias\Think;
+use think\admin\server\support\Cookie;
+use think\admin\server\support\Request;
+use think\admin\server\support\Think;
 use Workerman\Connection\TcpConnection;
 use Workerman\Lib\Timer;
 use Workerman\Protocols\Http as WorkerHttp;
